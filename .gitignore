@@ -12,4 +12,4 @@ dist/
 
 # macOS
 .DS_Store
-./backend/f1_backend.egg-info/
+*.egg-info/
