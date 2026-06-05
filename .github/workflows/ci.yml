@@ -19,3 +19,5 @@ jobs:
       - run: pip install -e ".[dev]"
       - run: ruff check .
       - run: pytest -q
+        env:
+          DATABASE_URL: "postgresql+psycopg://test:test@localhost:5432/test"

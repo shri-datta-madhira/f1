@@ -1,9 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import os
 
-# Read allowed origins from the environment; fall back to local dev.
-cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+from app.config import settings
+from app.database import check_connection
 
 app = FastAPI(
     title="F1 Analysis & Prediction Platform",
@@ -12,7 +11,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=cors_origins,
+    allow_origins=settings.cors_origin_list,
     allow_credentials=True,
     allow_methods=["GET"],
     allow_headers=["*"],
@@ -22,3 +21,8 @@ app.add_middleware(
 @app.get("/health")
 def health_check():
     return {"status": "OK"}
+
+@app.get("/db-check")
+def db_check():
+    check_connection()
+    return {"status": "Database connection successful"}
