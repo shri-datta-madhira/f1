@@ -1,0 +1,28 @@
+---
+description: F1 Analysis & Prediction Platform — project-wide conventions
+alwaysApply: true
+---
+
+# Project
+Formula 1 historical analysis + race prediction. Portfolio-quality.
+Built as a structured learning project: prefer clarity and explain non-obvious choices.
+
+# Stack
+- Backend: Python 3.13, FastAPI, SQLAlchemy 2.0 (typed, `Mapped[]`), Alembic, pydantic-settings.
+  Install: `pip install -e ".[dev]"`. Lint: ruff. Test: pytest.
+- Frontend: React + TypeScript (Vite), React Query, Recharts, Tailwind.
+- DB: PostgreSQL (local via Docker; Neon in prod).
+  Data sources: Jolpica/Ergast (historical, 1950+), OpenF1 (telemetry, 2023+).
+- Hosting: Cloudflare Pages (FE) + Render (BE) + Neon (DB).
+  Config via env vars (12-factor); never hardcode URLs or secrets.
+
+# Engineering standards
+- Surgical, minimal changes; don't refactor beyond the immediate scope.
+- One correct path per feature; no speculative abstractions, no silent fallbacks.
+- Fail fast: raise explicit errors when preconditions aren't met.
+- Single responsibility per function; strict separation of concerns.
+- TypeScript strict, no `any`. Python: full type hints; let types do the work.
+- Code must build/lint/test clean before commit (`make check`).
+
+# Layout
+backend/ (app/), frontend/, infra/ (Terraform), .github/ (CI)
