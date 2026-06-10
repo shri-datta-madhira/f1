@@ -46,7 +46,7 @@ class Session(Base):
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    grand_prix_id: Mapped[int] = mapped_column(ForeignKey("races.id"), index=True)
+    grand_prix_id: Mapped[int] = mapped_column(ForeignKey("grand_prix.id"), index=True)
     type: Mapped[SessionType] = mapped_column(
         SQLEnum(
             SessionType,
@@ -61,8 +61,8 @@ class Session(Base):
     openf1_session_key: Mapped[int | None] = mapped_column(unique=True)
 
     grand_prix: Mapped[GrandPrix] = relationship(back_populates="sessions")
-    results: Mapped[list[SessionResult]] = relationship(back_populates="session")
-    qualifying: Mapped[list[Qualifying]] = relationship(back_populates="session")
+    results: Mapped[list[RaceResults]] = relationship(back_populates="session")
+    qualifying: Mapped[list[QualiResults]] = relationship(back_populates="session")
 
 
 class Status(Base):
@@ -72,9 +72,9 @@ class Status(Base):
     label: Mapped[str] = mapped_column(String(64), unique=True)
 
 
-# Race Results and Sprint Results are the same table which is why it is a SessionResult table
-class SessionResult(Base):
-    __tablename__ = "session_results"
+class RaceResults(Base):
+    """Official classification of any racing session: grand prix race AND sprint."""
+    __tablename__ = "race_results"
     __table_args__ = (UniqueConstraint("session_id", "driver_id"),)  # uq leftmost covers session_id
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -94,8 +94,9 @@ class SessionResult(Base):
     status: Mapped[Status] = relationship()
 
 
-class Qualifying(Base):
-    __tablename__ = "qualifying"
+class QualiResults(Base):
+    """Official classification of any qualifying session: grand prix qualifying AND sprint."""
+    __tablename__ = "quali_results"
     __table_args__ = (UniqueConstraint("session_id", "driver_id"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)

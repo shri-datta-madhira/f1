@@ -15,29 +15,29 @@ the free APIs are deprecated / rate-limited.
 
 ```mermaid
 erDiagram
-    SEASONS      ||--o{ RACES          : has
+    SEASONS      ||--o{ GRAND_PRIX     : has
     SEASONS      ||--o{ SEASON_ENTRIES : lists
-    CIRCUITS     ||--o{ RACES          : hosts
+    CIRCUITS     ||--o{ GRAND_PRIX     : hosts
     DRIVERS      ||--o{ SEASON_ENTRIES : enters
     CONSTRUCTORS ||--o{ SEASON_ENTRIES : fields
-    RACES        ||--o{ SESSIONS       : has
-    SESSIONS     ||--o{ RESULTS        : produces
-    SESSIONS     ||--o{ QUALIFYING     : produces
+    GRAND_PRIX   ||--o{ SESSIONS       : has
+    SESSIONS     ||--o{ RACE_RESULTS   : produces
+    SESSIONS     ||--o{ QUALI_RESULTS  : produces
     SESSIONS     ||--o{ LAPS           : records
     SESSIONS     ||--o{ PIT_STOPS      : records
     SESSIONS     ||--o{ STINTS         : records
     SESSIONS     ||--o{ WEATHER        : records
     SESSIONS     ||--o{ LIVE_TIMING    : streams
     SESSIONS     ||--o{ PREDICTIONS    : generates
-    DRIVERS      ||--o{ RESULTS        : in
-    DRIVERS      ||--o{ QUALIFYING     : in
+    DRIVERS      ||--o{ RACE_RESULTS   : in
+    DRIVERS      ||--o{ QUALI_RESULTS  : in
     DRIVERS      ||--o{ LAPS           : in
     DRIVERS      ||--o{ PIT_STOPS      : in
     DRIVERS      ||--o{ STINTS         : in
     DRIVERS      ||--o{ LIVE_TIMING    : in
-    CONSTRUCTORS ||--o{ RESULTS        : in
-    CONSTRUCTORS ||--o{ QUALIFYING     : in
-    STATUSES     ||--o{ RESULTS        : classifies
+    CONSTRUCTORS ||--o{ RACE_RESULTS   : in
+    CONSTRUCTORS ||--o{ QUALI_RESULTS  : in
+    STATUSES     ||--o{ RACE_RESULTS   : classifies
 
     SEASONS {
         int year PK
@@ -64,7 +64,7 @@ erDiagram
         int constructor_id FK
         int driver_number
     }
-    RACES {
+    GRAND_PRIX {
         int id PK
         int season_year FK
         int circuit_id FK
@@ -72,7 +72,7 @@ erDiagram
     }
     SESSIONS {
         int id PK
-        int race_id FK
+        int grand_prix_id FK
         string type
         int openf1_session_key
     }
@@ -80,7 +80,7 @@ erDiagram
         int id PK
         string label
     }
-    RESULTS {
+    RACE_RESULTS {
         int id PK
         int session_id FK
         int driver_id FK
@@ -88,7 +88,7 @@ erDiagram
         int status_id FK
         int position
     }
-    QUALIFYING {
+    QUALI_RESULTS {
         int id PK
         int session_id FK
         int driver_id FK
@@ -132,6 +132,7 @@ erDiagram
         json payload
     }
 ```
+- NOTE: RACE_RESULTS and QUALI_RESULTS tables contain both grand_prix and sprint sessions differentiable by session_id.
 
 ### Why PostgreSQL, not MongoDB
 
