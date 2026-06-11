@@ -1,8 +1,8 @@
 """initial schema
 
-Revision ID: aeb65a337545
+Revision ID: a1e4a375bf45
 Revises: 
-Create Date: 2026-06-10 12:52:15.777709
+Create Date: 2026-06-10 15:33:26.464034
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = 'aeb65a337545'
+revision: str = 'a1e4a375bf45'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -30,9 +30,9 @@ def upgrade() -> None:
     sa.Column('lat', sa.Float(), nullable=True),
     sa.Column('lng', sa.Float(), nullable=True),
     sa.Column('alt', sa.Integer(), nullable=True),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_circuits'))
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_circuits')),
+    sa.UniqueConstraint('ergast_ref', name=op.f('uq_circuits_ergast_ref'))
     )
-    op.create_index(op.f('ix_circuits_ergast_ref'), 'circuits', ['ergast_ref'], unique=True)
     op.create_table('constructors',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('ergast_ref', sa.String(length=64), nullable=False),
@@ -40,9 +40,9 @@ def upgrade() -> None:
     sa.Column('nationality', sa.String(length=64), nullable=True),
     sa.Column('color', sa.String(length=7), nullable=True),
     sa.Column('logo_url', sa.String(length=256), nullable=True),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_constructors'))
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_constructors')),
+    sa.UniqueConstraint('ergast_ref', name=op.f('uq_constructors_ergast_ref'))
     )
-    op.create_index(op.f('ix_constructors_ergast_ref'), 'constructors', ['ergast_ref'], unique=True)
     op.create_table('drivers',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('ergast_ref', sa.String(length=64), nullable=False),
@@ -52,9 +52,9 @@ def upgrade() -> None:
     sa.Column('surname', sa.String(length=64), nullable=False),
     sa.Column('dob', sa.Date(), nullable=True),
     sa.Column('nationality', sa.String(length=64), nullable=True),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_drivers'))
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_drivers')),
+    sa.UniqueConstraint('ergast_ref', name=op.f('uq_drivers_ergast_ref'))
     )
-    op.create_index(op.f('ix_drivers_ergast_ref'), 'drivers', ['ergast_ref'], unique=True)
     op.create_table('seasons',
     sa.Column('year', sa.Integer(), nullable=False),
     sa.PrimaryKeyConstraint('year', name=op.f('pk_seasons'))
@@ -104,7 +104,6 @@ def upgrade() -> None:
     sa.UniqueConstraint('grand_prix_id', 'type', name=op.f('uq_sessions_grand_prix_id')),
     sa.UniqueConstraint('openf1_session_key', name=op.f('uq_sessions_openf1_session_key'))
     )
-    op.create_index(op.f('ix_sessions_grand_prix_id'), 'sessions', ['grand_prix_id'], unique=False)
     op.create_table('laps',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('session_id', sa.Integer(), nullable=False),
@@ -160,7 +159,7 @@ def upgrade() -> None:
     sa.UniqueConstraint('session_id', 'lap_checkpoint', 'model_version', name=op.f('uq_predictions_session_id'))
     )
     op.create_index('ix_predictions_payload', 'predictions', ['payload'], unique=False, postgresql_using='gin')
-    op.create_table('qualifying',
+    op.create_table('quali_results',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('session_id', sa.Integer(), nullable=False),
     sa.Column('driver_id', sa.Integer(), nullable=False),
@@ -169,14 +168,14 @@ def upgrade() -> None:
     sa.Column('q1', sa.String(length=16), nullable=True),
     sa.Column('q2', sa.String(length=16), nullable=True),
     sa.Column('q3', sa.String(length=16), nullable=True),
-    sa.ForeignKeyConstraint(['constructor_id'], ['constructors.id'], name=op.f('fk_qualifying_constructor_id_constructors')),
-    sa.ForeignKeyConstraint(['driver_id'], ['drivers.id'], name=op.f('fk_qualifying_driver_id_drivers')),
-    sa.ForeignKeyConstraint(['session_id'], ['sessions.id'], name=op.f('fk_qualifying_session_id_sessions')),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_qualifying')),
-    sa.UniqueConstraint('session_id', 'driver_id', name=op.f('uq_qualifying_session_id'))
+    sa.ForeignKeyConstraint(['constructor_id'], ['constructors.id'], name=op.f('fk_quali_results_constructor_id_constructors')),
+    sa.ForeignKeyConstraint(['driver_id'], ['drivers.id'], name=op.f('fk_quali_results_driver_id_drivers')),
+    sa.ForeignKeyConstraint(['session_id'], ['sessions.id'], name=op.f('fk_quali_results_session_id_sessions')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_quali_results')),
+    sa.UniqueConstraint('session_id', 'driver_id', name=op.f('uq_quali_results_session_id'))
     )
-    op.create_index(op.f('ix_qualifying_driver_id'), 'qualifying', ['driver_id'], unique=False)
-    op.create_table('session_results',
+    op.create_index(op.f('ix_quali_results_driver_id'), 'quali_results', ['driver_id'], unique=False)
+    op.create_table('race_results',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('session_id', sa.Integer(), nullable=False),
     sa.Column('driver_id', sa.Integer(), nullable=False),
@@ -187,15 +186,15 @@ def upgrade() -> None:
     sa.Column('points', sa.Float(), server_default=sa.text('0'), nullable=False),
     sa.Column('laps_completed', sa.Integer(), nullable=True),
     sa.Column('fastest_lap_rank', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['constructor_id'], ['constructors.id'], name=op.f('fk_session_results_constructor_id_constructors')),
-    sa.ForeignKeyConstraint(['driver_id'], ['drivers.id'], name=op.f('fk_session_results_driver_id_drivers')),
-    sa.ForeignKeyConstraint(['session_id'], ['sessions.id'], name=op.f('fk_session_results_session_id_sessions')),
-    sa.ForeignKeyConstraint(['status_id'], ['statuses.id'], name=op.f('fk_session_results_status_id_statuses')),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_session_results')),
-    sa.UniqueConstraint('session_id', 'driver_id', name=op.f('uq_session_results_session_id'))
+    sa.ForeignKeyConstraint(['constructor_id'], ['constructors.id'], name=op.f('fk_race_results_constructor_id_constructors')),
+    sa.ForeignKeyConstraint(['driver_id'], ['drivers.id'], name=op.f('fk_race_results_driver_id_drivers')),
+    sa.ForeignKeyConstraint(['session_id'], ['sessions.id'], name=op.f('fk_race_results_session_id_sessions')),
+    sa.ForeignKeyConstraint(['status_id'], ['statuses.id'], name=op.f('fk_race_results_status_id_statuses')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_race_results')),
+    sa.UniqueConstraint('session_id', 'driver_id', name=op.f('uq_race_results_session_id'))
     )
-    op.create_index(op.f('ix_session_results_constructor_id'), 'session_results', ['constructor_id'], unique=False)
-    op.create_index(op.f('ix_session_results_driver_id'), 'session_results', ['driver_id'], unique=False)
+    op.create_index(op.f('ix_race_results_constructor_id'), 'race_results', ['constructor_id'], unique=False)
+    op.create_index(op.f('ix_race_results_driver_id'), 'race_results', ['driver_id'], unique=False)
     op.create_table('stints',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('session_id', sa.Integer(), nullable=False),
@@ -233,18 +232,17 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_weather_session_id'), table_name='weather')
     op.drop_table('weather')
     op.drop_table('stints')
-    op.drop_index(op.f('ix_session_results_driver_id'), table_name='session_results')
-    op.drop_index(op.f('ix_session_results_constructor_id'), table_name='session_results')
-    op.drop_table('session_results')
-    op.drop_index(op.f('ix_qualifying_driver_id'), table_name='qualifying')
-    op.drop_table('qualifying')
+    op.drop_index(op.f('ix_race_results_driver_id'), table_name='race_results')
+    op.drop_index(op.f('ix_race_results_constructor_id'), table_name='race_results')
+    op.drop_table('race_results')
+    op.drop_index(op.f('ix_quali_results_driver_id'), table_name='quali_results')
+    op.drop_table('quali_results')
     op.drop_index('ix_predictions_payload', table_name='predictions', postgresql_using='gin')
     op.drop_table('predictions')
     op.drop_table('pit_stops')
     op.drop_index('ix_live_timing_session_lap', table_name='live_timing')
     op.drop_table('live_timing')
     op.drop_table('laps')
-    op.drop_index(op.f('ix_sessions_grand_prix_id'), table_name='sessions')
     op.drop_table('sessions')
     op.drop_index(op.f('ix_season_entries_driver_id'), table_name='season_entries')
     op.drop_index(op.f('ix_season_entries_constructor_id'), table_name='season_entries')
@@ -253,10 +251,7 @@ def downgrade() -> None:
     op.drop_table('grand_prix')
     op.drop_table('statuses')
     op.drop_table('seasons')
-    op.drop_index(op.f('ix_drivers_ergast_ref'), table_name='drivers')
     op.drop_table('drivers')
-    op.drop_index(op.f('ix_constructors_ergast_ref'), table_name='constructors')
     op.drop_table('constructors')
-    op.drop_index(op.f('ix_circuits_ergast_ref'), table_name='circuits')
     op.drop_table('circuits')
     # ### end Alembic commands ###

@@ -46,7 +46,7 @@ class Session(Base):
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    grand_prix_id: Mapped[int] = mapped_column(ForeignKey("grand_prix.id"), index=True)
+    grand_prix_id: Mapped[int] = mapped_column(ForeignKey("grand_prix.id"))
     type: Mapped[SessionType] = mapped_column(
         SQLEnum(
             SessionType,

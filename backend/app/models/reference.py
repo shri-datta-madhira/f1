@@ -20,7 +20,7 @@ class Circuit(Base):
     __tablename__ = "circuits"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    ergast_ref: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    ergast_ref: Mapped[str] = mapped_column(String(64), unique=True)
     name: Mapped[str] = mapped_column(String(128))
     locality: Mapped[str | None] = mapped_column(String(128))
     country: Mapped[str | None] = mapped_column(String(64))
@@ -33,7 +33,7 @@ class Driver(Base):
     __tablename__ = "drivers"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    ergast_ref: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    ergast_ref: Mapped[str] = mapped_column(String(64), unique=True)
     permanent_number: Mapped[int | None]
     code: Mapped[str | None] = mapped_column(String(3))         # VER, LEC, HAM
     forename: Mapped[str] = mapped_column(String(64))
@@ -48,7 +48,7 @@ class Constructor(Base):
     __tablename__ = "constructors"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    ergast_ref: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    ergast_ref: Mapped[str] = mapped_column(String(64), unique=True)
     name: Mapped[str] = mapped_column(String(128))
     nationality: Mapped[str | None] = mapped_column(String(64))
     color: Mapped[str | None] = mapped_column(String(7))        # hex, e.g. #E8002D

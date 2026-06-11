@@ -4,7 +4,7 @@ Historical Formula 1 analysis and race-result prediction. React + TypeScript
 frontend, FastAPI + PostgreSQL backend, and ML models that predict finishing
 order. Portfolio project.
 
-Full schema, ERD, and rationale: [`docs/F1_database_design_v2.pdf`](docs/F1_database_design_v2.pdf).
+Full schema, ERD, and rationale: `[docs/F1_database_design_v3.pdf](docs/F1_database_design_v2.pdf)`.
 
 ## Database
 
@@ -132,34 +132,39 @@ erDiagram
         json payload
     }
 ```
+
+
+
 - NOTE: RACE_RESULTS and QUALI_RESULTS tables contain both grand_prix and sprint sessions differentiable by session_id.
 
 ### Why PostgreSQL, not MongoDB
 
 - The workload is relational and analytical — cross-season joins, aggregations,
-  and foreign-key integrity across drivers, constructors, and sessions. SQL fits
-  it directly; Mongo's `$lookup` is awkward for multi-way joins.
+and foreign-key integrity across drivers, constructors, and sessions. SQL fits
+it directly; Mongo's `$lookup` is awkward for multi-way joins.
 - The only places that want a flexible document — `predictions.payload` and the
-  live race snapshot — are covered by Postgres JSONB. So we get document
-  flexibility without a second datastore, on one Neon free-tier bill.
+live race snapshot — are covered by Postgres JSONB. So we get document
+flexibility without a second datastore, on one Neon free-tier bill.
 
 ### `live_timing` is transient
 
 - One row per driver per lap = the full running order at the end of each lap,
-  streamed from OpenF1 during a race.
+streamed from OpenF1 during a race.
 - The model reads the trailing ~10 laps at each checkpoint; rows for a session
-  are deleted once its official `results` are ingested. It never feeds `results`
-  (which is set only by the final classification).
+are deleted once its official `results` are ingested. It never feeds `results`
+(which is set only by the final classification).
 
 ## Stack
 
-| Layer    | Choice                                       |
-|----------|----------------------------------------------|
+
+| Layer    | Choice                                                     |
+| -------- | ---------------------------------------------------------- |
 | Frontend | React + TypeScript (Vite), React Query, Recharts, Tailwind |
-| Backend  | FastAPI, SQLAlchemy 2.0, Alembic (Python 3.13) |
-| Database | PostgreSQL (local via Docker; Neon in prod)  |
-| ML       | scikit-learn / LightGBM (trained offline)    |
-| Hosting  | Cloudflare Pages + Render + Neon ($0/month)  |
+| Backend  | FastAPI, SQLAlchemy 2.0, Alembic (Python 3.13)             |
+| Database | PostgreSQL (local via Docker; Neon in prod)                |
+| ML       | scikit-learn / LightGBM (trained offline)                  |
+| Hosting  | Cloudflare Pages + Render + Neon ($0/month)                |
+
 
 ## Run locally
 
@@ -172,3 +177,4 @@ uvicorn app.main:app --reload
 
 cd frontend && npm install && npm run dev   # http://localhost:5173
 ```
+
