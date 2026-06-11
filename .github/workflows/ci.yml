@@ -6,7 +6,7 @@ on:
     branches: [main]
 
 jobs:
-  backend:
+  test:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -21,3 +21,24 @@ jobs:
       - run: pytest -q
         env:
           DATABASE_URL: "postgresql+psycopg://test:test@localhost:5432/test"
+  migrate:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -e "./backend[dev]"
+      - run: alembic upgrade head
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    needs: [migrate]  # only deploy if the DB migration is successful (if there is any)
+    steps:
+      - run: curl -fsS -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+      #      -f makes curl exit non-zero on an HTTP error, so a failed hook call fails the job visibly instead of silently
