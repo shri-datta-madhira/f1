@@ -38,6 +38,10 @@ erDiagram
     CONSTRUCTORS ||--o{ RACE_RESULTS   : in
     CONSTRUCTORS ||--o{ QUALI_RESULTS  : in
     STATUSES     ||--o{ RACE_RESULTS   : classifies
+    CONSTRUCTORS ||--o{ CONSTRUCTOR_STANDINGS  : in
+    DRIVERS      ||--o{ DRIVER_STANDINGS      : in
+    GRAND_PRIX   ||--o{ CONSTRUCTOR_STANDINGS : produces
+    GRAND_PRIX   ||--o{ DRIVER_STANDINGS      : produces
 
     SEASONS {
         int year PK
@@ -131,9 +135,25 @@ erDiagram
         int lap_checkpoint
         json payload
     }
+    CONSTRUCTOR_STANDINGS {
+        int id PK
+        int grand_prix_id FK
+        int constructor_id FK
+        int position
+        string position_text
+        decimal points
+        int wins
+    }
+    DRIVER_STANDINGS {
+        int id PK
+        int grand_prix_id FK
+        int driver_id FK
+        int position
+        stirng position_text
+        decimal points
+        int wins
+    }
 ```
-
-
 
 - NOTE: RACE_RESULTS and QUALI_RESULTS tables contain both grand_prix and sprint sessions differentiable by session_id.
 
